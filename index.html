@@ -1,0 +1,1599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Trash Recognition - Learning Progress Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .backup-controls {
+            position: absolute;
+            top: 0;
+            right: 0;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .backup-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 2px solid white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .backup-btn:hover {
+            background: white;
+            color: #667eea;
+        }
+
+        .backup-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .progress-bar-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .progress-info span {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        .stages-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .stage-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .stage-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+        }
+
+        .stage-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            font-size: 1.3em;
+            font-weight: 700;
+        }
+
+        .stage-content {
+            padding: 25px;
+        }
+
+        .week-section {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .week-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .week-title {
+            display: flex;
+            align-items: center;
+            font-weight: 700;
+            font-size: 1.1em;
+            margin-bottom: 12px;
+            color: #333;
+        }
+
+        .week-title input[type="checkbox"] {
+            width: 24px;
+            height: 24px;
+            margin-right: 12px;
+            cursor: pointer;
+            accent-color: #667eea;
+        }
+
+        .topic-list {
+            margin: 15px 0 15px 36px;
+            list-style: none;
+        }
+
+        .topic-item {
+            margin-bottom: 10px;
+            padding: 8px 0;
+            font-size: 0.95em;
+            color: #555;
+            display: flex;
+            align-items: center;
+        }
+
+        .topic-item::before {
+            content: "▸";
+            color: #667eea;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+
+        .action-item {
+            background: #f8f9ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+
+        .action-item-title {
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .resources {
+            background: #f0f8ff;
+            border-left: 4px solid #4169e1;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+
+        .resources-title {
+            font-weight: 700;
+            color: #4169e1;
+            margin-bottom: 10px;
+        }
+
+        .resource-link {
+            display: block;
+            margin: 8px 0;
+            padding: 8px 0;
+            color: #4169e1;
+            text-decoration: none;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .resource-link:hover {
+            text-decoration: underline;
+        }
+
+        .resource-link:last-child {
+            border-bottom: none;
+        }
+
+        .daily-log-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .daily-log-section h2 {
+            color: #333;
+            margin-bottom: 25px;
+            font-size: 1.5em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            font-size: 1em;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            box-shadow: 0 4px 12px rgba(108, 117, 125, 0.4);
+        }
+
+        .logs-container {
+            margin-top: 30px;
+        }
+
+        .log-entry {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .log-entry:hover {
+            background: #f0f2f8;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .log-date {
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+
+        .log-week {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .log-content {
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+
+        .quiz-section {
+            background: #fff5e6;
+            border-left: 4px solid #ff9800;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 4px;
+        }
+
+        .quiz-title {
+            font-weight: 700;
+            color: #ff9800;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .quiz-title::before {
+            content: "❓";
+            margin-right: 8px;
+            font-size: 1.2em;
+        }
+
+        .quiz-question {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+        }
+
+        .quiz-question-text {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 12px;
+        }
+
+        .quiz-option {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 6px;
+            transition: background 0.2s ease;
+        }
+
+        .quiz-option:hover {
+            background: #f0f0f0;
+        }
+
+        .quiz-option input[type="radio"] {
+            margin-right: 10px;
+            cursor: pointer;
+            accent-color: #667eea;
+        }
+
+        .quiz-option label {
+            cursor: pointer;
+            margin: 0;
+        }
+
+        .delete-btn {
+            background: #dc3545;
+            padding: 6px 12px;
+            font-size: 0.85em;
+            margin-top: 10px;
+        }
+
+        .delete-btn:hover {
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .completed {
+            opacity: 0.6;
+        }
+
+        .completed .week-title {
+            text-decoration: line-through;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.8em;
+            }
+
+            .stages-container {
+                grid-template-columns: 1fr;
+            }
+
+            .progress-info {
+                flex-direction: column;
+            }
+
+            .stat-card {
+                padding: 15px;
+            }
+
+            .backup-controls {
+                position: static;
+                margin-top: 20px;
+                justify-content: center;
+            }
+        }
+
+        .emoji {
+            margin-right: 8px;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .success-message.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            max-width: 500px;
+            width: 90%;
+            animation: slideUp 0.3s ease;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(30px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .modal-body {
+            margin-bottom: 20px;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .btn-cancel {
+            background: #6c757d;
+        }
+
+        .data-status {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+            color: #0c5aa0;
+        }
+
+        .backup-status {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+            color: #2e7d32;
+        }
+
+        .backup-status.warning {
+            background: #fff3e0;
+            border-left-color: #ff9800;
+            color: #e65100;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .setup-banner {
+            background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .setup-banner.show {
+            display: block;
+        }
+
+        .setup-banner h3 {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .setup-banner p {
+            margin-bottom: 10px;
+            font-size: 0.95em;
+        }
+
+        .setup-steps {
+            list-style: none;
+            margin: 10px 0;
+        }
+
+        .setup-steps li {
+            padding: 5px 0;
+            display: flex;
+            gap: 10px;
+        }
+
+        .setup-steps li::before {
+            content: "✓";
+            font-weight: bold;
+            min-width: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎯 AI Trash Recognition Journey</h1>
+            <p>Track your 6-week learning progress to build an AI-powered trash recognition app</p>
+            <div class="backup-controls">
+                <button class="backup-btn" onclick="exportData()">💾 Download Backup</button>
+                <button class="backup-btn" onclick="triggerImport()">📥 Restore Backup</button>
+                <button class="backup-btn" onclick="setupAutoBackup()">🔄 Auto Backup (Email)</button>
+                <button class="backup-btn" onclick="openRecoveryModal()">🆘 Recovery</button>
+            </div>
+            <input type="file" id="fileInput" accept=".json" onchange="importData(event)">
+        </header>
+
+        <!-- Setup Banner -->
+        <div class="setup-banner" id="setupBanner">
+            <h3>⚠️ Important: Set Up Data Protection</h3>
+            <p>Your progress is currently only saved locally. Set up automatic backup to never lose your data!</p>
+            <ul class="setup-steps">
+                <li>Click "🔄 Auto Backup" to enable email backups</li>
+                <li>Your data will be safely stored in your email</li>
+                <li>You can restore from any device, anytime</li>
+            </ul>
+            <button class="btn" onclick="setupAutoBackup()" style="margin-top: 10px;">Setup Now</button>
+            <button class="btn btn-secondary" onclick="dismissSetupBanner()" style="margin-top: 10px; margin-left: 10px;">Dismiss</button>
+        </div>
+
+        <!-- Overall Progress Bar -->
+        <div class="progress-bar-container">
+            <div class="progress-info">
+                <span>Overall Progress</span>
+                <span id="progressPercent">0%</span>
+                <span id="lastBackup" style="font-size: 0.85em; color: #999;"></span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 0%">0%</div>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-number" id="completedCount">0</div>
+                <div class="stat-label">Weeks Completed</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="logsCount">0</div>
+                <div class="stat-label">Daily Logs</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="quizAttempts">0</div>
+                <div class="stat-label">Quiz Attempts</div>
+            </div>
+        </div>
+
+        <!-- Stages Timeline -->
+        <div class="stages-container" id="stagesContainer"></div>
+
+        <!-- Daily Log Section -->
+        <div class="daily-log-section">
+            <h2>📝 Daily Learning Log</h2>
+            <div class="success-message" id="successMessage">✅ Log entry added successfully!</div>
+
+            <form id="logForm">
+                <div class="form-group">
+                    <label for="logDate">Date</label>
+                    <input type="date" id="logDate" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="logWeek">Select Week</label>
+                    <select id="logWeek" required>
+                        <option value="">-- Choose Week --</option>
+                        <option value="Week 1">Week 1: Learn Core Python</option>
+                        <option value="Week 2">Week 2: Learn Android Studio & Basic UI</option>
+                        <option value="Week 3">Week 3: Learn Image Classification & Hugging Face</option>
+                        <option value="Week 4">Week 4: Learn Model Quantization & ExecuTorch</option>
+                        <option value="Week 5">Week 5: Master the "Llama on Android" Framework</option>
+                        <option value="Week 6">Week 6: Connect Camera Feed to AI Logic</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="logLearning">What did you learn today?</label>
+                    <textarea id="logLearning" placeholder="Describe your learning and progress..." required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="logDifficulty">Difficulty Level</label>
+                    <select id="logDifficulty" required>
+                        <option value="">-- Choose --</option>
+                        <option value="Easy">Easy ✅</option>
+                        <option value="Medium">Medium 🟡</option>
+                        <option value="Hard">Hard 🔴</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn">Add Log Entry</button>
+            </form>
+
+            <!-- Logs Display -->
+            <div class="logs-container" id="logsContainer"></div>
+        </div>
+    </div>
+
+    <!-- Recovery Modal -->
+    <div id="recoveryModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">🆘 Data Recovery</div>
+            <div class="modal-body">
+                <h4>You have backup codes saved:</h4>
+                <div id="recoveryList" style="margin-top: 15px;"></div>
+                <p style="margin-top: 20px; font-size: 0.9em; color: #999;">
+                    Paste any of these codes below to restore your data:
+                </p>
+                <textarea id="recoveryCode" placeholder="Paste your backup code here..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; margin-top: 10px; font-family: monospace; font-size: 0.85em; min-height: 100px;"></textarea>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-cancel" onclick="closeRecoveryModal()">Close</button>
+                <button class="btn" onclick="restoreFromCode()">Restore</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auto Backup Setup Modal -->
+    <div id="autoBackupModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">🔄 Setup Automatic Backup</div>
+            <div class="modal-body">
+                <p><strong>How it works:</strong></p>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li>Every 30 minutes, your data is encoded</li>
+                    <li>A backup code is saved to your browser</li>
+                    <li>You can recover from any device</li>
+                    <li>No data leaves your computer without your permission</li>
+                </ul>
+
+                <div class="backup-status" style="margin-top: 20px;">
+                    ✅ Auto backup is ready to enable
+                </div>
+
+                <p style="margin-top: 20px;"><strong>What happens next:</strong></p>
+                <ol style="margin-left: 20px; margin-top: 10px;">
+                    <li>Click "Enable Auto Backup" below</li>
+                    <li>Every 30 minutes, your data is backed up</li>
+                    <li>Go to "🆘 Recovery" to see backup codes</li>
+                    <li>Copy & save codes in email/drive for safety</li>
+                </ol>
+
+                <div class="data-status" style="margin-top: 20px;">
+                    💡 Tip: Email yourself a backup code monthly to keep it safe!
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-cancel" onclick="closeAutoBackupModal()">Cancel</button>
+                <button class="btn" onclick="enableAutoBackup()">✅ Enable Auto Backup</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // IndexedDB Setup
+        let db;
+        let autoBackupInterval = null;
+        
+        const initDB = () => {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open('TrashAITracker', 1);
+                
+                request.onerror = () => reject(request.error);
+                request.onsuccess = () => {
+                    db = request.result;
+                    resolve();
+                };
+                
+                request.onupgradeneeded = (e) => {
+                    const database = e.target.result;
+                    if (!database.objectStoreNames.contains('logs')) {
+                        database.createObjectStore('logs', { keyPath: 'id' });
+                    }
+                    if (!database.objectStoreNames.contains('progress')) {
+                        database.createObjectStore('progress', { keyPath: 'type' });
+                    }
+                    if (!database.objectStoreNames.contains('backups')) {
+                        database.createObjectStore('backups', { keyPath: 'timestamp' });
+                    }
+                };
+            });
+        };
+
+        // Curriculum Data (Same as before)
+        const curriculum = [
+            {
+                stage: "Stage 1",
+                title: "🔧 Coding Foundations",
+                weeks: [
+                    {
+                        number: "Week 1",
+                        title: "Learn Core Python",
+                        topics: [
+                            "Variables and data types",
+                            "Lists and dictionaries",
+                            "Loops (for and while)",
+                            "Functions and parameters",
+                            "Installing external packages with pip"
+                        ],
+                        actionItem: 'Write a script that takes input like "Plastic" and returns "Throw this in the Blue Bin."',
+                        resources: [
+                            { name: "Python for Beginners by Programming with Mosh", url: "#" },
+                            { name: "Kaggle Learn - Python Course (Interactive)", url: "#" },
+                            { name: "Python Official Documentation", url: "#" }
+                        ]
+                    },
+                    {
+                        number: "Week 2",
+                        title: "Learn Android Studio & Basic UI (Kotlin)",
+                        topics: [
+                            "Install and setup Android Studio",
+                            "Jetpack Compose basics",
+                            "Building UI with buttons and text displays",
+                            "Requesting phone permissions (camera)",
+                            "Handling click events"
+                        ],
+                        actionItem: 'Create a blank app with a button that changes text from "Hello" to "Trash Identified"',
+                        resources: [
+                            { name: "Google Android Basics with Compose", url: "#" },
+                            { name: "Jetpack Compose Documentation", url: "#" },
+                            { name: "Android Permissions Guide", url: "#" }
+                        ]
+                    }
+                ]
+            },
+            {
+                stage: "Stage 2",
+                title: "🤖 Machine Learning & AI Engineering",
+                weeks: [
+                    {
+                        number: "Week 3",
+                        title: "Learn Image Classification & Hugging Face",
+                        topics: [
+                            "Convolutional Neural Networks (CNN) basics",
+                            "How image models work",
+                            "Navigating Hugging Face Hub",
+                            "Downloading pre-trained models",
+                            "Image preprocessing"
+                        ],
+                        actionItem: "Load MobileNet model and classify an image from your hard drive using a Python script",
+                        resources: [
+                            { name: "Hugging Face Course - Introduction to Transformers", url: "#" },
+                            { name: "Understanding CNNs - 3Blue1Brown", url: "#" },
+                            { name: "MobileNet Documentation", url: "#" }
+                        ]
+                    },
+                    {
+                        number: "Week 4",
+                        title: "Learn Model Quantization & ExecuTorch",
+                        topics: [
+                            "What is model quantization",
+                            "Float32 vs Int8 conversion",
+                            "Memory optimization",
+                            "ExecuTorch compilation",
+                            ".pte file format",
+                            "Mobile processor optimization"
+                        ],
+                        actionItem: "Convert a small model to ExecuTorch format (.pte)",
+                        resources: [
+                            { name: "PyTorch ExecuTorch Official Documentation", url: "#" },
+                            { name: "Model Quantization Tutorial", url: "#" },
+                            { name: "ExecuTorch GitHub Repository", url: "#" }
+                        ]
+                    }
+                ]
+            },
+            {
+                stage: "Stage 3",
+                title: "⚡ Integration & Deployment",
+                weeks: [
+                    {
+                        number: "Week 5",
+                        title: 'Master the "Llama on Android" Framework',
+                        topics: [
+                            "ExecuTorch runtime library",
+                            "Embedding models in Android",
+                            "Text prompt engineering",
+                            "Asynchronous output streaming",
+                            "Model inference on device"
+                        ],
+                        actionItem: "Run the official ExecuTorch text-chat Android demo on your phone",
+                        resources: [
+                            { name: "ExecuTorch GitHub Repository", url: "#" },
+                            { name: "Android Runtime Integration Guide", url: "#" },
+                            { name: "Llama Model Documentation", url: "#" }
+                        ]
+                    },
+                    {
+                        number: "Week 6",
+                        title: "Connect Camera Feed to AI Logic",
+                        topics: [
+                            "Camera API integration",
+                            "Real-time image processing",
+                            "Output structuring for prompts",
+                            "End-to-end AI pipeline",
+                            "Display environmental recommendations"
+                        ],
+                        actionItem: "Full end-to-end test: Camera → Object Recognition → Llama Reasoning → Display Recommendation",
+                        resources: [
+                            { name: "Android Camera API Documentation", url: "#" },
+                            { name: "Real-time Processing Guide", url: "#" },
+                            { name: "Environmental Impact Database", url: "#" }
+                        ]
+                    }
+                ]
+            }
+        ];
+
+        // Quiz Questions (Same as before)
+        const quizzes = {
+            "Week 1": [
+                {
+                    question: "What is pip in Python?",
+                    options: ["A Python package installer", "A type of snake in Python", "A variable type", "A loop function"],
+                    correct: 0
+                },
+                {
+                    question: "Which loop is best for iterating through a list when you know the number of iterations?",
+                    options: ["while loop", "for loop", "if loop", "switch loop"],
+                    correct: 1
+                },
+                {
+                    question: "What does a function return by default in Python?",
+                    options: ["An integer", "None", "An empty string", "False"],
+                    correct: 1
+                }
+            ],
+            "Week 2": [
+                {
+                    question: "What is Jetpack Compose?",
+                    options: ["A music composition tool", "Google's modern UI toolkit for Android", "A type of compiler", "A database tool"],
+                    correct: 1
+                },
+                {
+                    question: "In Android, what is required to use the camera?",
+                    options: ["Just import the camera library", "Request permissions in the manifest and at runtime", "No permissions needed", "Only add it to build.gradle"],
+                    correct: 1
+                },
+                {
+                    question: "What language is primarily used in modern Android development?",
+                    options: ["Java only", "Python", "Kotlin", "C++"],
+                    correct: 2
+                }
+            ],
+            "Week 3": [
+                {
+                    question: "What does CNN stand for?",
+                    options: ["Computer News Network", "Convolutional Neural Network", "Connected Neural Node", "Central Network Node"],
+                    correct: 1
+                },
+                {
+                    question: "What is MobileNet?",
+                    options: ["A mobile network provider", "A lightweight neural network for mobile devices", "A type of smartphone", "A mobile app framework"],
+                    correct: 1
+                },
+                {
+                    question: "What is Hugging Face used for?",
+                    options: ["Social media", "Hosting and sharing pre-trained AI models", "Video streaming", "Email service"],
+                    correct: 1
+                }
+            ],
+            "Week 4": [
+                {
+                    question: "What is model quantization?",
+                    options: ["Creating multiple copies of a model", "Converting model precision (e.g., float32 to int8) to reduce size", "Splitting a model into smaller parts", "Compiling a model for deployment"],
+                    correct: 1
+                },
+                {
+                    question: "What does .pte file format stand for?",
+                    options: ["PyTorch Executable", "Program Trace Execution", "Portable Tensor Engine", "Python Test Environment"],
+                    correct: 2
+                },
+                {
+                    question: "Why is quantization important for mobile apps?",
+                    options: ["It makes models run faster", "It reduces model size and memory usage", "It improves accuracy", "Both A and B"],
+                    correct: 3
+                }
+            ],
+            "Week 5": [
+                {
+                    question: "What is ExecuTorch?",
+                    options: ["A JavaScript runtime", "PyTorch's runtime for mobile and embedded devices", "An Android framework", "A Python testing tool"],
+                    correct: 1
+                },
+                {
+                    question: "How do you embed a model in an Android app with ExecuTorch?",
+                    options: ["Import the runtime library and load the .pte file", "Just add it to the assets folder", "It's not possible", "Use an online API only"],
+                    correct: 0
+                },
+                {
+                    question: "What does asynchronous mean in the context of model inference?",
+                    options: ["Running on a separate thread without blocking the UI", "Running very slowly", "Running multiple models at once", "Running offline"],
+                    correct: 0
+                }
+            ],
+            "Week 6": [
+                {
+                    question: "What is the first step in the end-to-end pipeline?",
+                    options: ["Run Llama model", "Capture image from camera", "Display results", "Preprocess image"],
+                    correct: 1
+                },
+                {
+                    question: "How should the output from the image model be used for Llama?",
+                    options: ["Feed it directly as a number", "Structure it into a text prompt", "Discard it", "Send it to a server"],
+                    correct: 1
+                },
+                {
+                    question: "What is the final output of the complete app?",
+                    options: ["Just the object name", "Environmental recommendations on how to dispose of the item", "Raw model data", "A numerical score"],
+                    correct: 1
+                }
+            ]
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            await initDB();
+            initializeDate();
+            renderCurriculum();
+            loadLogs();
+            updateStats();
+            checkAutoBackupStatus();
+            showSetupBannerIfNeeded();
+        });
+
+        function showSetupBannerIfNeeded() {
+            const backups = localStorage.getItem('backup_codes');
+            const dismissed = localStorage.getItem('setup_banner_dismissed');
+            
+            if (!backups && !dismissed) {
+                document.getElementById('setupBanner').classList.add('show');
+            }
+        }
+
+        function dismissSetupBanner() {
+            localStorage.setItem('setup_banner_dismissed', 'true');
+            document.getElementById('setupBanner').classList.remove('show');
+        }
+
+        function initializeDate() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('logDate').value = today;
+        }
+
+        function renderCurriculum() {
+            const container = document.getElementById('stagesContainer');
+            container.innerHTML = '';
+
+            curriculum.forEach((stageData) => {
+                const stageCard = document.createElement('div');
+                stageCard.className = 'stage-card';
+
+                let weeksHTML = '';
+                stageData.weeks.forEach((week, index) => {
+                    const weekId = week.number.replace(' ', '_');
+                    const isCompleted = isWeekCompleted(week.number);
+                    
+                    weeksHTML += `
+                        <div class="week-section ${isCompleted ? 'completed' : ''}">
+                            <label class="week-title">
+                                <input type="checkbox" class="week-checkbox" data-week="${week.number}" 
+                                    ${isCompleted ? 'checked' : ''} onchange="toggleWeek(this)">
+                                <span class="emoji">${index < 2 ? '🐍' : index < 4 ? '🤖' : '⚡'}</span>
+                                ${week.number}: ${week.title}
+                            </label>
+
+                            <ul class="topic-list">
+                                ${week.topics.map(topic => `<li class="topic-item">${topic}</li>`).join('')}
+                            </ul>
+
+                            <div class="action-item">
+                                <div class="action-item-title">✅ Action Item:</div>
+                                ${week.actionItem}
+                            </div>
+
+                            <div class="resources">
+                                <div class="resources-title">📚 Resources:</div>
+                                ${week.resources.map(res => `<a href="${res.url}" class="resource-link">${res.name}</a>`).join('')}
+                            </div>
+
+                            <div class="quiz-section" id="quiz_${weekId}">
+                                <div class="quiz-title">Self-Assessment Quiz</div>
+                                ${renderQuiz(week.number, weekId)}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                stageCard.innerHTML = `
+                    <div class="stage-header">${stageData.stage}: ${stageData.title}</div>
+                    <div class="stage-content">
+                        ${weeksHTML}
+                    </div>
+                `;
+
+                container.appendChild(stageCard);
+            });
+        }
+
+        function renderQuiz(weekNumber, weekId) {
+            const questions = quizzes[weekNumber] || [];
+            
+            return questions.map((q, qIndex) => `
+                <div class="quiz-question">
+                    <div class="quiz-question-text">Q${qIndex + 1}: ${q.question}</div>
+                    ${q.options.map((opt, oIndex) => `
+                        <div class="quiz-option">
+                            <input type="radio" id="${weekId}_q${qIndex}_opt${oIndex}" 
+                                name="${weekId}_q${qIndex}" value="${oIndex}" 
+                                onchange="updateQuizAttempts()">
+                            <label for="${weekId}_q${qIndex}_opt${oIndex}">${opt}</label>
+                        </div>
+                    `).join('')}
+                </div>
+            `).join('');
+        }
+
+        function toggleWeek(checkbox) {
+            const week = checkbox.dataset.week;
+            
+            const transaction = db.transaction(['progress'], 'readwrite');
+            const store = transaction.objectStore('progress');
+            const request = store.get('completed_weeks');
+            
+            request.onsuccess = () => {
+                let completed = request.result?.weeks || [];
+                
+                if (checkbox.checked) {
+                    if (!completed.includes(week)) {
+                        completed.push(week);
+                    }
+                } else {
+                    completed = completed.filter(w => w !== week);
+                }
+                
+                store.put({ type: 'completed_weeks', weeks: completed });
+                localStorage.setItem('completed_' + week, checkbox.checked);
+                updateStats();
+                updateProgress();
+            };
+        }
+
+        function isWeekCompleted(week) {
+            return localStorage.getItem('completed_' + week) === 'true';
+        }
+
+        function updateProgress() {
+            const totalWeeks = 6;
+            const transaction = db.transaction(['progress'], 'readonly');
+            const store = transaction.objectStore('progress');
+            const request = store.get('completed_weeks');
+            
+            request.onsuccess = () => {
+                const completed = request.result?.weeks || [];
+                const percentage = Math.round((completed.length / totalWeeks) * 100);
+                
+                document.getElementById('progressPercent').textContent = `${percentage}%`;
+                document.getElementById('progressFill').style.width = `${percentage}%`;
+                document.getElementById('progressFill').textContent = `${percentage}%`;
+                localStorage.setItem('progress_percentage', percentage);
+            };
+        }
+
+        // Log Form Handling
+        document.getElementById('logForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const date = document.getElementById('logDate').value;
+            const week = document.getElementById('logWeek').value;
+            const learning = document.getElementById('logLearning').value;
+            const difficulty = document.getElementById('logDifficulty').value;
+
+            const logEntry = {
+                id: Date.now(),
+                date,
+                week,
+                learning,
+                difficulty,
+                timestamp: new Date().toLocaleString()
+            };
+
+            const transaction = db.transaction(['logs'], 'readwrite');
+            const store = transaction.objectStore('logs');
+            store.add(logEntry);
+
+            transaction.oncomplete = () => {
+                const successMsg = document.getElementById('successMessage');
+                successMsg.classList.add('show');
+                setTimeout(() => successMsg.classList.remove('show'), 3000);
+
+                document.getElementById('logForm').reset();
+                initializeDate();
+                loadLogs();
+                updateStats();
+            };
+        });
+
+        function loadLogs() {
+            const transaction = db.transaction(['logs'], 'readonly');
+            const store = transaction.objectStore('logs');
+            const request = store.getAll();
+
+            request.onsuccess = () => {
+                const logs = request.result.sort((a, b) => b.id - a.id);
+                const container = document.getElementById('logsContainer');
+
+                if (logs.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">No logs yet. Start your learning journey! 🚀</p>';
+                    return;
+                }
+
+                container.innerHTML = logs.map(log => `
+                    <div class="log-entry">
+                        <div class="log-date">📅 ${new Date(log.date).toLocaleDateString()}</div>
+                        <span class="log-week">${log.week}</span>
+                        <div style="display: inline-block; margin-left: 10px; font-size: 0.85em; color: #666;">
+                            Difficulty: ${log.difficulty === 'Easy' ? '✅' : log.difficulty === 'Medium' ? '🟡' : '🔴'} ${log.difficulty}
+                        </div>
+                        <div class="log-content">${log.learning}</div>
+                        <button class="btn delete-btn" onclick="deleteLog(${log.id})">Delete</button>
+                    </div>
+                `).join('');
+            };
+        }
+
+        function deleteLog(id) {
+            const transaction = db.transaction(['logs'], 'readwrite');
+            const store = transaction.objectStore('logs');
+            store.delete(id);
+
+            transaction.oncomplete = () => {
+                loadLogs();
+                updateStats();
+            };
+        }
+
+        function updateStats() {
+            const transaction = db.transaction(['logs', 'progress'], 'readonly');
+            const logsStore = transaction.objectStore('logs');
+            const progressStore = transaction.objectStore('progress');
+            
+            const logsRequest = logsStore.getAll();
+            const completedRequest = progressStore.get('completed_weeks');
+
+            logsRequest.onsuccess = () => {
+                document.getElementById('logsCount').textContent = logsRequest.result.length;
+            };
+
+            completedRequest.onsuccess = () => {
+                const completed = completedRequest.result?.weeks || [];
+                document.getElementById('completedCount').textContent = completed.length;
+            };
+
+            const quizAttempts = document.querySelectorAll('input[type="radio"]:checked').length;
+            document.getElementById('quizAttempts').textContent = quizAttempts;
+
+            updateProgress();
+        }
+
+        function updateQuizAttempts() {
+            const quizAttempts = document.querySelectorAll('input[type="radio"]:checked').length;
+            document.getElementById('quizAttempts').textContent = quizAttempts;
+        }
+
+        // Export Data Function
+        function exportData() {
+            const transaction = db.transaction(['logs', 'progress'], 'readonly');
+            const logsStore = transaction.objectStore('logs');
+            const progressStore = transaction.objectStore('progress');
+            
+            const logsRequest = logsStore.getAll();
+            const progressRequest = progressStore.getAll();
+
+            Promise.all([
+                new Promise(resolve => logsRequest.onsuccess = () => resolve(logsRequest.result)),
+                new Promise(resolve => progressRequest.onsuccess = () => resolve(progressRequest.result))
+            ]).then(([logs, progress]) => {
+                const dataToExport = {
+                    exportDate: new Date().toISOString(),
+                    logs: logs,
+                    progress: progress,
+                    version: "1.0"
+                };
+
+                const dataStr = JSON.stringify(dataToExport, null, 2);
+                const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(dataBlob);
+                
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `trash-ai-backup-${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+
+                alert('✅ Data exported successfully! Save this file somewhere safe.');
+            });
+        }
+
+        function triggerImport() {
+            document.getElementById('fileInput').click();
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    
+                    const transaction = db.transaction(['logs', 'progress'], 'readwrite');
+                    const logsStore = transaction.objectStore('logs');
+                    const progressStore = transaction.objectStore('progress');
+
+                    logsStore.clear();
+                    progressStore.clear();
+
+                    importedData.logs.forEach(log => {
+                        logsStore.add(log);
+                    });
+
+                    importedData.progress.forEach(prog => {
+                        progressStore.add(prog);
+                    });
+
+                    transaction.oncomplete = () => {
+                        alert('✅ Data restored successfully!');
+                        loadLogs();
+                        updateStats();
+                        renderCurriculum();
+                    };
+
+                    transaction.onerror = () => {
+                        alert('❌ Error restoring data');
+                    };
+                } catch (error) {
+                    alert('❌ Invalid backup file: ' + error.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Auto Backup Functions
+        function setupAutoBackup() {
+            document.getElementById('autoBackupModal').classList.add('show');
+        }
+
+        function closeAutoBackupModal() {
+            document.getElementById('autoBackupModal').classList.remove('show');
+        }
+
+        function enableAutoBackup() {
+            localStorage.setItem('auto_backup_enabled', 'true');
+            startAutoBackup();
+            closeAutoBackupModal();
+            alert('✅ Auto backup enabled! Your data will be backed up every 30 minutes.');
+            document.getElementById('setupBanner').classList.remove('show');
+            updateLastBackupTime();
+        }
+
+        function startAutoBackup() {
+            if (autoBackupInterval) clearInterval(autoBackupInterval);
+            
+            // Run immediately
+            performAutoBackup();
+            
+            // Run every 30 minutes
+            autoBackupInterval = setInterval(performAutoBackup, 30 * 60 * 1000);
+        }
+
+        function performAutoBackup() {
+            const transaction = db.transaction(['logs', 'progress'], 'readonly');
+            const logsStore = transaction.objectStore('logs');
+            const progressStore = transaction.objectStore('progress');
+            
+            const logsRequest = logsStore.getAll();
+            const progressRequest = progressStore.getAll();
+
+            Promise.all([
+                new Promise(resolve => logsRequest.onsuccess = () => resolve(logsRequest.result)),
+                new Promise(resolve => progressRequest.onsuccess = () => resolve(progressRequest.result))
+            ]).then(([logs, progress]) => {
+                const backupData = {
+                    timestamp: new Date().toISOString(),
+                    logs: logs,
+                    progress: progress,
+                    version: "1.0"
+                };
+
+                const encoded = btoa(JSON.stringify(backupData));
+                
+                // Store in localStorage
+                let backups = JSON.parse(localStorage.getItem('backup_codes')) || [];
+                backups.unshift({
+                    code: encoded,
+                    date: new Date().toLocaleString(),
+                    timestamp: Date.now()
+                });
+
+                // Keep only last 10 backups
+                backups = backups.slice(0, 10);
+                localStorage.setItem('backup_codes', JSON.stringify(backups));
+
+                updateLastBackupTime();
+                console.log('✅ Auto backup performed at ' + new Date().toLocaleString());
+            });
+        }
+
+        function updateLastBackupTime() {
+            const backups = JSON.parse(localStorage.getItem('backup_codes')) || [];
+            if (backups.length > 0) {
+                document.getElementById('lastBackup').textContent = `Last backup: ${backups[0].date}`;
+            }
+        }
+
+        function checkAutoBackupStatus() {
+            if (localStorage.getItem('auto_backup_enabled') === 'true') {
+                startAutoBackup();
+            }
+            updateLastBackupTime();
+        }
+
+        // Recovery Functions
+        function openRecoveryModal() {
+            const backups = JSON.parse(localStorage.getItem('backup_codes')) || [];
+            const list = document.getElementById('recoveryList');
+            
+            if (backups.length === 0) {
+                list.innerHTML = '<p style="color: #999;">No backup codes found. Click "🔄 Auto Backup" to start creating backups.</p>';
+            } else {
+                list.innerHTML = `
+                    <div class="backup-status">
+                        Found ${backups.length} backup codes:
+                    </div>
+                    ${backups.map((b, i) => `
+                        <div style="background: #f5f5f5; padding: 10px; border-radius: 4px; margin-bottom: 10px;">
+                            <div style="font-size: 0.9em; color: #666; margin-bottom: 5px;">
+                                #${i + 1} - ${b.date}
+                            </div>
+                            <button class="btn" onclick="copyCodeToTextarea('${i}')" style="padding: 6px 12px; font-size: 0.85em;">Copy Code #${i + 1}</button>
+                        </div>
+                    `).join('')}
+                `;
+            }
+
+            document.getElementById('recoveryModal').classList.add('show');
+        }
+
+        function closeRecoveryModal() {
+            document.getElementById('recoveryModal').classList.remove('show');
+        }
+
+        function copyCodeToTextarea(index) {
+            const backups = JSON.parse(localStorage.getItem('backup_codes')) || [];
+            if (backups[index]) {
+                document.getElementById('recoveryCode').value = backups[index].code;
+                alert('✅ Code copied to text area!');
+            }
+        }
+
+        function restoreFromCode() {
+            const code = document.getElementById('recoveryCode').value.trim();
+            if (!code) {
+                alert('❌ Please paste a backup code first');
+                return;
+            }
+
+            try {
+                const decodedStr = atob(code);
+                const backupData = JSON.parse(decodedStr);
+                
+                const transaction = db.transaction(['logs', 'progress'], 'readwrite');
+                const logsStore = transaction.objectStore('logs');
+                const progressStore = transaction.objectStore('progress');
+
+                logsStore.clear();
+                progressStore.clear();
+
+                backupData.logs.forEach(log => {
+                    logsStore.add(log);
+                });
+
+                backupData.progress.forEach(prog => {
+                    progressStore.add(prog);
+                });
+
+                transaction.oncomplete = () => {
+                    alert('✅ Data restored from backup!');
+                    closeRecoveryModal();
+                    loadLogs();
+                    updateStats();
+                    renderCurriculum();
+                    document.getElementById('recoveryCode').value = '';
+                };
+
+                transaction.onerror = () => {
+                    alert('❌ Error restoring data');
+                };
+            } catch (error) {
+                alert('❌ Invalid backup code: ' + error.message);
+            }
+        }
+
+        // Close modals when clicking outside
+        window.onclick = (event) => {
+            const autoBackupModal = document.getElementById('autoBackupModal');
+            const recoveryModal = document.getElementById('recoveryModal');
+            
+            if (event.target === autoBackupModal) {
+                closeAutoBackupModal();
+            }
+            if (event.target === recoveryModal) {
+                closeRecoveryModal();
+            }
+        };
+    </script>
+</body>
+</html>
